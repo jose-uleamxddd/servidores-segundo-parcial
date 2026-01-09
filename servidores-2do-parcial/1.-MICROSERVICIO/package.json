@@ -1,0 +1,27 @@
+{
+  "name": "microservicio-vehiculos",
+  "version": "1.0.0",
+  "description": "Sistema de microservicios con arquitectura híbrida HTTP + RabbitMQ",
+  "scripts": {
+    "install:all": "npm install && cd api-gateway && npm install && cd ../tipo-vehiculo-service && npm install && cd ../vehiculo-service && npm install",
+    "start:all": "concurrently \"npm run start:gateway\" \"npm run start:tipo-vehiculo\" \"npm run start:vehiculo\"",
+    "start:gateway": "cd api-gateway && npm run start:dev",
+    "start:tipo-vehiculo": "cd tipo-vehiculo-service && npm run start:dev",
+    "start:vehiculo": "cd vehiculo-service && npm run start:dev",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "microservices",
+    "nestjs",
+    "rabbitmq",
+    "cdc",
+    "transactional-outbox"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

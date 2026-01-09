@@ -1,0 +1,47 @@
+{
+  "name": "microservices-nestjs-rabbitmq",
+  "version": "1.0.0",
+  "description": "Sistema de microservicios con NestJS, RabbitMQ y MySQL",
+  "scripts": {
+    "start:gateway": "nest start api-gateway --watch",
+    "start:products": "nest start products-service --watch",
+    "start:orders": "nest start orders-service --watch",
+    "start:mcp": "cd apps/mcp-server && npm run dev",
+    "start:ai": "cd apps/api-gateway-ai && npm run start:dev",
+    "build": "nest build",
+    "build:mcp": "cd apps/mcp-server && npm run build",
+    "build:ai": "cd apps/api-gateway-ai && npm run build",
+    "start:all": "concurrently \"npm run start:gateway\" \"npm run start:products\" \"npm run start:orders\"",
+    "start:all:mcp": "concurrently \"npm run start:gateway\" \"npm run start:products\" \"npm run start:orders\" \"npm run start:mcp\"",
+    "start:all:ai": "concurrently \"npm run start:gateway\" \"npm run start:products\" \"npm run start:orders\" \"npm run start:mcp\" \"npm run start:ai\""
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/microservices": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.0",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "dotenv": "^17.2.3",
+    "mysql2": "^3.6.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.17",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@types/node": "^20.3.1",
+    "@types/uuid": "^9.0.7",
+    "concurrently": "^8.2.0",
+    "supabase": "^2.67.1",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
+  }
+}

@@ -1,0 +1,339 @@
+{
+  "info": {
+    "name": "Microservicios Vehículos - Sistema Completo",
+    "description": "Colección completa para probar el sistema de microservicios con arquitectura híbrida HTTP + RabbitMQ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "tipoSedanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tipoSuvId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vehiculoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tipo Vehículo (Entidad Maestra)",
+      "item": [
+        {
+          "name": "Crear Tipo Sedán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.collectionVariables.set(\"tipoSedanId\", jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sedán\",\n  \"descripcion\": \"Vehículo de pasajeros con 4 puertas\",\n  \"capacidadPasajeros\": 5,\n  \"categoria\": \"Automóvil\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Crear Tipo SUV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"tipoSuvId\", jsonData.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"SUV\",\n  \"descripcion\": \"Vehículo utilitario deportivo\",\n  \"capacidadPasajeros\": 7,\n  \"categoria\": \"Camioneta\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Listar Tipos de Vehículo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Tipo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo/{{tipoSedanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo", "{{tipoSedanId}}"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Tipo SUV",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacidadPasajeros\": 8,\n  \"descripcion\": \"SUV de lujo con 8 pasajeros\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo/{{tipoSuvId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo", "{{tipoSuvId}}"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Tipo de Vehículo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tipo-vehiculo/{{tipoSedanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tipo-vehiculo", "{{tipoSedanId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehículo (Entidad Transaccional)",
+      "item": [
+        {
+          "name": "Crear Vehículo Toyota",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test(\"Validación asíncrona exitosa\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('tipoVehiculoNombre');",
+                  "    pm.collectionVariables.set(\"vehiculoId\", jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"ABC-123\",\n  \"marca\": \"Toyota\",\n  \"modelo\": \"Corolla\",\n  \"anio\": 2023,\n  \"color\": \"Blanco\",\n  \"tipoVehiculoId\": \"{{tipoSedanId}}\",\n  \"numeroSerie\": \"JTDBL40E499123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Crear Vehículo Ford SUV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"XYZ-789\",\n  \"marca\": \"Ford\",\n  \"modelo\": \"Explorer\",\n  \"anio\": 2024,\n  \"color\": \"Negro\",\n  \"tipoVehiculoId\": \"{{tipoSuvId}}\",\n  \"numeroSerie\": \"1FMCU9GD9KUA12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Listar Vehículos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Vehículo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo/{{vehiculoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo", "{{vehiculoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Vehículo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"Azul\",\n  \"anio\": 2024\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo/{{vehiculoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo", "{{vehiculoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Vehículo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo/{{vehiculoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo", "{{vehiculoId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pruebas de Validación",
+      "item": [
+        {
+          "name": "Crear Vehículo con Tipo Inexistente (debe fallar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 or 500\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"INVALID-001\",\n  \"marca\": \"Test\",\n  \"modelo\": \"Test\",\n  \"anio\": 2023,\n  \"color\": \"Test\",\n  \"tipoVehiculoId\": \"00000000-0000-0000-0000-000000000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehiculo",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehiculo"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # RabbitMQ - Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # PostgreSQL - Tipo Vehículo Service
+  postgres-tipo-vehiculo:
+    image: postgres:14-alpine
+    container_name: postgres-tipo-vehiculo
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: tipo_vehiculo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_tipo_vehiculo_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL - Vehículo Service
+  postgres-vehiculo:
+    image: postgres:14-alpine
+    container_name: postgres-vehiculo
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: vehiculo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_vehiculo_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      TIPO_VEHICULO_SERVICE_HOST: tipo-vehiculo-service
+      TIPO_VEHICULO_SERVICE_PORT: 3001
+      VEHICULO_SERVICE_HOST: vehiculo-service
+      VEHICULO_SERVICE_PORT: 3002
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Tipo Vehículo Microservice
+  tipo-vehiculo-service:
+    build:
+      context: ./tipo-vehiculo-service
+      dockerfile: Dockerfile
+    container_name: tipo-vehiculo-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_HOST: postgres-tipo-vehiculo
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres123
+      DATABASE_NAME: tipo_vehiculo_db
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+    depends_on:
+      postgres-tipo-vehiculo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Vehículo Microservice
+  vehiculo-service:
+    build:
+      context: ./vehiculo-service
+      dockerfile: Dockerfile
+    container_name: vehiculo-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DATABASE_HOST: postgres-vehiculo
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres123
+      DATABASE_NAME: vehiculo_db
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+    depends_on:
+      postgres-vehiculo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  postgres_tipo_vehiculo_data:
+  postgres_vehiculo_data:
+
+networks:
+  microservices-network:
+    driver: bridge
